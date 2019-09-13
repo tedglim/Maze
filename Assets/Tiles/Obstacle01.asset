@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: sand_tile
+  m_Script: {fileID: 11500000, guid: 39562d2d37e304217afc5bc81cac9e0b, type: 3}
+  m_Name: Obstacle01
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 21300000, guid: f91f2a795abd44935adc5cb98fcfbbbb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0864a39fa7637472e87158332b734122, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

@@ -26,6 +26,38 @@ public class AStar : MonoBehaviour
 
     private TileButton prevButton;
     private int initTileType = -1;
+    private Vector3Int startPos;
+    private Vector3Int endPos;
+    
+    void Start()
+    {
+        tilemap.CompressBounds();
+        BoundsInt bounds = tilemap.cellBounds;
+        TileBase[] allTiles = tilemap.GetTilesBlock(bounds);
+
+        for (int x = 0; x < bounds.size.x; x++) {
+            for (int y = 0; y < bounds.size.y; y++) {
+                TileBase tile = allTiles[x + y * bounds.size.x];
+                if (tile != null) {
+                    Debug.Log("x:" + x + " y:" + y + " tile:" + tile.name);
+                    if (tile.name == "startTile")
+                    {
+                        startPos = new Vector3Int(x, y, 0);
+                    } else if (tile.name == "endTile")
+                    {
+                        endPos = new Vector3Int(x,y, 0);
+                    }
+                } else {
+                    Debug.Log("x:" + x + " y:" + y + " tile: (null)");
+                }
+            }
+        }  
+        print(tilemap.cellBounds);
+        print(startPos);
+        print(endPos);
+        // print(tilemap.)
+    }
+    
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
