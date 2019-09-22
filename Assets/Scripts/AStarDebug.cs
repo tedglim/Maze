@@ -43,9 +43,14 @@ public class AStarDebug : MonoBehaviour
 
     public void CreateTiles(HashSet<Node> openList, HashSet<Node> closedList, Dictionary<Vector3Int, Node> allNodes, Vector3Int start, Vector3Int goal, Stack<Vector3Int> path = null)
     {
-        print("thisis oG start position: ");
+        print("this is oG start position: ");
         print(start);
         
+        foreach(GameObject go in debugObject)
+        {
+            Destroy(go);
+        }
+
         // print(startColor);
         foreach (Node node in openList) 
         {
@@ -140,15 +145,24 @@ public class AStarDebug : MonoBehaviour
         tilemap.SetColor(position, color);
     }
 
-    // Start is called before the first frame update
-    void Start()
+    public void ShowHide()
     {
-        
+        canvas.gameObject.SetActive(!canvas.isActiveAndEnabled);
+        Color c = tilemap.color;
+        c.a = c.a != 0 ? 0 : 1;
+        tilemap.color = c;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void Reset(Dictionary<Vector3Int, Node> allNodes)
     {
-        
+        foreach(GameObject go in debugObject)
+        {
+            Destroy(go);
+        }
+        debugObject.Clear();
+        foreach(Vector3Int position in allNodes.Keys)
+        {
+            tilemap.SetTile(position, null);
+        }
     }
 }
