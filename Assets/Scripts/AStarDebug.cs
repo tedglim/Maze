@@ -7,7 +7,6 @@ public class AStarDebug : MonoBehaviour
 {
 
     private static AStarDebug instance;
-
     public static AStarDebug MyInstance
     {
         get
@@ -19,46 +18,34 @@ public class AStarDebug : MonoBehaviour
             return instance;
         }
     }
-
     [SerializeField]
     private Grid grid;
-
     [SerializeField]
     private Tilemap tilemap;
-
     [SerializeField]
     private Tile tile;
-
     [SerializeField]
     private Color openColor, closedColor, pathColor, currentColor, startColor, goalColor;
-
     [SerializeField]
     private Canvas canvas;
-
     [SerializeField]
     private GameObject debugTextPrefab;
-
     private List<GameObject> debugObject = new List<GameObject>();
 
 
     public void CreateTiles(HashSet<Node> openList, HashSet<Node> closedList, Dictionary<Vector3Int, Node> allNodes, Vector3Int start, Vector3Int goal, Stack<Vector3Int> path = null)
     {
-        print("this is oG start position: ");
-        print(start);
-        
+
         foreach(GameObject go in debugObject)
         {
             Destroy(go);
         }
 
-        // print(startColor);
         foreach (Node node in openList) 
         {
-            print("thisis recorded node position");
-            print(node.Position);
             ColorTile(node.Position, openColor);
-            
         }
+
         foreach (Node node in closedList)
         {
             ColorTile(node.Position, closedColor);
@@ -74,9 +61,6 @@ public class AStarDebug : MonoBehaviour
                 }
             }
         }
-
-        // tilemap.SetTile(start, tile);
-        // tilemap.SetTile(start, tile);
         ColorTile(start, startColor);
         ColorTile(goal, goalColor);
 
@@ -138,10 +122,8 @@ public class AStarDebug : MonoBehaviour
 
     public void ColorTile(Vector3Int position, Color color)
     {
-        // print(position);
         tilemap.SetTile(position, tile);
         tilemap.SetTileFlags(position, TileFlags.None);
-        // print(tile);
         tilemap.SetColor(position, color);
     }
 
@@ -150,6 +132,14 @@ public class AStarDebug : MonoBehaviour
         canvas.gameObject.SetActive(!canvas.isActiveAndEnabled);
         Color c = tilemap.color;
         c.a = c.a != 0 ? 0 : 1;
+        tilemap.color = c;
+    }
+
+    public void Show()
+    {
+        canvas.gameObject.SetActive(true);
+        Color c = tilemap.color;
+        c.a = 1;
         tilemap.color = c;
     }
 

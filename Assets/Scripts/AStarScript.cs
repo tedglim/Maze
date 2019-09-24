@@ -1,7 +1,5 @@
 ﻿using System.Linq;
-using System.Net;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -11,29 +9,32 @@ public enum TileType {PATH, GRASS, WATER, START, END, EDGE}
 
 public class AStarScript : MonoBehaviour
 {
-    private bool hasStartEnd;
-    private Vector3Int startPos, endPos;
-    private bool[] startEndTileFlags = new bool[2];
     [SerializeField]
-    private Tile[] tiles;
-    [SerializeField]
-    private LayerMask mask;
+    private Camera mainCam;
     [SerializeField]
     private Tilemap tilemap;
     [SerializeField]
-    private Camera mainCam;
+    private LayerMask mask;
+
+    private bool hasStartEnd;
+    private Vector3Int startPos, endPos;
+    private bool[] startEndTileFlags = new bool[2];
+    
+    [SerializeField]
+    private Tile[] tiles;
     private int currTileType = -1;
-    private TileButton prevButton;
     private HashSet<Vector3Int> changedTiles = new HashSet<Vector3Int>();
     private TileType tileType;
+    private TileButton prevButton;
+
     private Node current;
     private HashSet<Node> openList, closedList;
-    private Stack<Vector3Int> path;
     private Dictionary<Vector3Int, Node> allGridNodes = new Dictionary<Vector3Int, Node>();
     private const int cardinalDistance = 10;
-    private const int extraCost = 5;
+    private const int costToTurn = 5;
     private int count = 0;
-
+    private Stack<Vector3Int> path;
+    private Dictionary<Vector3Int, String> initMapState = new Dictionary<Vector3Int, String>();
 
     //Detect Start and End tiles at Start of Scene.
     void Start()
@@ -62,6 +63,7 @@ public class AStarScript : MonoBehaviour
                         startEndTileFlags[1] = true;
                     }
                 }
+                initMapState.Add(new Vector3Int(tilemap.origin.x + row, tilemap.origin.y + col, 0), tile.name);
             }
         }
 
@@ -98,7 +100,7 @@ public class AStarScript : MonoBehaviour
         if (nameOfTileToChange != "endTile" && nameOfTileToChange != "startTile" && nameOfTileToChange != "obstacleTile01" && currTileType != -1)
         {
             tilemap.SetTile(clickPos, tiles[(int)tileType]);
-            changedTiles.Add(clickPos);
+            // changedTiles.Add(clickPos);
         } else {
             print("Cannot place tile here.");
         }
@@ -136,8 +138,9 @@ public class AStarScript : MonoBehaviour
             ExamineNeighbors(neighbors, current);
             UpdateCurrentTile(ref current);
             path = GeneratePath(current);
-            if (step)
+            if(step)
             {
+                AStarDebug.MyInstance.Show();
                 break;
             }
         }
@@ -154,7 +157,7 @@ public class AStarScript : MonoBehaviour
         }
         AStarDebug.MyInstance.CreateTiles(openList, closedList, allGridNodes, startPos, endPos, path);
     }
-    
+
     //Initializes open/closed list to setup pathfinding
     private void Initialize()
     {
@@ -193,6 +196,13 @@ public class AStarScript : MonoBehaviour
                     if (neighborPos != startPos && tilemap.GetTile(neighborPos) && !isUnWalkable)
                     {
                         Node neighbor = GetNode(neighborPos);
+                        if (x != 0)
+                        {
+                            neighbor.Direction = "x";
+                        } else if (y != 0)
+                        {
+                            neighbor.Direction = "y";
+                        }
                         neighbors.Add(neighbor);
                     }
                 }
@@ -201,87 +211,58 @@ public class AStarScript : MonoBehaviour
         return neighbors;
     }
 
-    //Needto look at this
     //Checks whether tile is walkable
     private bool isUnwalkable(Vector3Int position)
     {
         Tile currentTile = (Tile)tilemap.GetTile(position);
         string tileName = (currentTile.sprite.name);
-        if(tileName != "obstacleTile01")
+        if(tileName != "obstacleTile01" && tileName != "grassTile")
         {
             return false;
         }
         return true;
     }
 
-    //Need to look at this
+    //This takes a list of neighbor nodes and calculates costs of traveling to each neighbor
+    //adds to openlist or recalculates costs if neighbor hasn't been seen/has already been seen respectively.
     private void ExamineNeighbors(List<Node> neighbors, Node current)
     {
         for(int i = 0; i < neighbors.Count; i++)
         {
             Node neighbor = neighbors[i];
-            // int gScore = DetermineGScore(neighbors[i].Position, current.Position);
+            int gScore = cardinalDistance;
             if (openList.Contains(neighbor))
             {
-                if (current.G + cardinalDistance < neighbor.G)
+                if (current.G + gScore < neighbor.G)
                 {
-                    CalcValues(current, neighbor, cardinalDistance, true);
+                    CalcValues(current, neighbor, gScore);
                 }
             } else if (!closedList.Contains(neighbor))
             {
-                CalcValues(current, neighbor, cardinalDistance, false);
+                CalcValues(current, neighbor, gScore);
                 openList.Add(neighbor);
             }
-            // openList.Add(neighbors[i]);
-            // CalcValues(current, neighbors[i], gScore);
         }
+        count += 1;
     }
 
-    // private int DetermineGScore(Vector3Int neighbor, Vector3Int current)
-    // {
-    //     int gScore = 0;
-    //     int x = current.x - neighbor.x;
-    //     int y = current.y - neighbor.y;
-
-    //     if (Math.Abs(x-y) % 2 == 1)
-    //     {
-    //         gScore = cardinalDistance;
-    //     } else {
-    //         gScore = 14;
-    //     }
-    //     return gScore;
-    // }
-
-    private void CalcValues(Node parent, Node neighbor, int cost, bool isInOpenList)
+    //calculates travel cost scores. Heuristic looks at how close current position is to end position and minimizes turns.
+    private void CalcValues(Node parent, Node neighbor, int cost)
     {
-        
         neighbor.Parent = parent;
-        // neighbor.G = 0;
-        // if (neighbor.Parent.XDir != neighbor.XDir || neighbor.Parent.YDir != neighbor.XDir)
-        // {
-            // neighbor.G = parent.G + cost + extraCost;
-        // } else {
         neighbor.G = parent.G + cost;
-        // }
-        // neighbor.G = parent.G + cost;
-        // neighbor.H = 0;
-        neighbor.H = (Math.Abs(neighbor.Position.x - endPos.x) + Math.Abs(neighbor.Position.y - endPos.y)) * cardinalDistance;
-        // if(!isInOpenList)
-        // {
-        //     neighbor.Rank = count;
-        //     count += 1;
-        // }
-            // neighbor.F = neighbor.G + neighbor.H - neighbor.Rank;
-        // } else {
-        //     neighbor.F = neighbor.G + neighbor.H;
-        // }
-        // neighbor.F = neighbor.G + neighbor.H - neighbor.Rank;
+        neighbor.Rank = count;
+        if (neighbor.Direction == neighbor.Parent.Direction)
+        {
+            neighbor.H = (Math.Abs(neighbor.Position.x - endPos.x) + Math.Abs(neighbor.Position.y - endPos.y)) * cardinalDistance;
+        } else 
+        {
+            neighbor.H = (Math.Abs(neighbor.Position.x - endPos.x) + Math.Abs(neighbor.Position.y - endPos.y)) * cardinalDistance + costToTurn;
+        }
         neighbor.F = neighbor.G + neighbor.H;
-
-
     }
 
-//need to change original value of node
+    //after deciding which node to move to, updates the current tile path
     private void UpdateCurrentTile(ref Node current)
     {
         openList.Remove(current);
@@ -289,14 +270,11 @@ public class AStarScript : MonoBehaviour
 
         if (openList.Count > 0)
         {
-
-
-            current = openList.OrderBy(x => x.F).First();
-
-            // current = openList.OrderBy(x => x.F).OrderBy(x => x.Rank).First();
+            current = openList.OrderBy(x => x.F).ThenByDescending(x => x.Rank).First();
         }
     }
 
+    //If there's a path from start to end, Make the path.
     private Stack<Vector3Int> GeneratePath(Node current)
     {
         if (current.Position == endPos)
@@ -313,18 +291,25 @@ public class AStarScript : MonoBehaviour
         return null;
     }
 
+    //Resets path and debug back to original.
     public void Reset()
     {
         AStarDebug.MyInstance.Reset(allGridNodes);
+        AStarDebug.MyInstance.ShowHide();
+        foreach(KeyValuePair<Vector3Int, String> pair in initMapState)
+        {
+            if (pair.Value == "pathTile")
+            {
+                tilemap.SetTile(pair.Key, tiles[0]);
+            } else if (pair.Value == "grassTile")
+            {
+                tilemap.SetTile(pair.Key, tiles[1]);
+            } else if (pair.Value == "obstacleTile01")
+            {
+                tilemap.SetTile(pair.Key, tiles[5]);
+            }
+        }
 
-        foreach(Vector3Int position in changedTiles)
-        {
-            tilemap.SetTile(position, tiles[1]);
-        }
-        foreach(Vector3Int position in path)
-        {
-            tilemap.SetTile(position, tiles[1]);
-        }
         tilemap.SetTile(startPos, tiles[3]);
         tilemap.SetTile(endPos, tiles[4]);
 
