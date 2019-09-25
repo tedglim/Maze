@@ -60,7 +60,9 @@
      <Compile Include="Assets\Scripts\AStarTile.cs" />
      <Compile Include="Assets\Scripts\DebugTextScript.cs" />
      <Compile Include="Assets\Scripts\Node.cs" />
+     <Compile Include="Assets\Scripts\SpawnManagerScript.cs" />
      <Compile Include="Assets\Scripts\TileButton.cs" />
+     <Compile Include="Assets\Scripts\Unit01ParentScript.cs" />
      <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
      <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
      <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Properties.cginc" />
