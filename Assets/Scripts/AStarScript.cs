@@ -35,8 +35,6 @@ public class AStarScript : MonoBehaviour
     private int count = 0;
     private Stack<Vector3Int> path;
     private Dictionary<Vector3Int, String> initMapState = new Dictionary<Vector3Int, String>();
-    [SerializeField]
-    private GameObject unit;
 
     //Detect Start and End tiles at Start of Scene.
     void Start()
@@ -102,6 +100,7 @@ public class AStarScript : MonoBehaviour
         if (nameOfTileToChange != "endTile" && nameOfTileToChange != "startTile" && nameOfTileToChange != "obstacleTile01" && currTileType != -1)
         {
             tilemap.SetTile(clickPos, tiles[(int)tileType]);
+            // changedTiles.Add(clickPos);
         } else {
             print("Cannot place tile here.");
         }
@@ -126,7 +125,7 @@ public class AStarScript : MonoBehaviour
 
     /* Button functions */
     //Quick Pathfind
-    private void CreateQuickPath(bool step)
+    public void CreateQuickPath(bool step)
     {
         if (current == null)
         {
@@ -146,8 +145,6 @@ public class AStarScript : MonoBehaviour
             }
         }
 
-        AStarDebug.MyInstance.CreateTiles(openList, closedList, allGridNodes, startPos, endPos, path);
-
         if (path != null)
         {
             foreach (Vector3Int position in path)
@@ -157,9 +154,8 @@ public class AStarScript : MonoBehaviour
                     tilemap.SetTile(position, tiles[0]);
                 }
             }
-            // return path;
         }
-        
+        AStarDebug.MyInstance.CreateTiles(openList, closedList, allGridNodes, startPos, endPos, path);
     }
 
     //Initializes open/closed list to setup pathfinding
