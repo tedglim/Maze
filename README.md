@@ -11,3 +11,5 @@ People can use this to
 ![](makeMap.gif)
 ![](moveOnMap.gif)
 </br>
+
+Next steps would be to utilize this in a Tower Defense game.
