@@ -16,7 +16,7 @@ public class Unit01ParentScript : MonoBehaviour
     private const int cardinalDistance = 10;
     private const int costToTurn = 5;
     private int count = 0;
-    private float speed = 1.0f;
+    private float speed = 3.0f;
     private Vector3 destination;
 
     // Start is called before the first frame update
